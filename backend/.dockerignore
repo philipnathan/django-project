@@ -1,0 +1,18 @@
+# Git
+.git
+.gitignore
+
+# Docker
+.docker
+
+# Python
+apps/__pycache__/
+apps/*/__pycache__/
+apps/*/*/__pycache__/
+apps/*/*/*/__pycache__/
+.env/
+*.pyc
+*.pyo
+
+# Database
+*.sqlite3
