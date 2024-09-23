@@ -1,6 +1,8 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine3.20
 
 ENV PYTHONUNBUFFERED 1
+
+RUN apk add --no-cache gcc musl-dev postgresql-dev
 
 RUN adduser \
     --disabled-password \
