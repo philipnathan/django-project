@@ -3,15 +3,18 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from django.db import transaction
+from django.utils.decorators import method_decorator
 
 from .serializers import UserSerializer, UserUpdateSerializer, UserDeactivateSerializer
 
-# Create your views here.
+from apps.decorators.response_handler import response_handler
 
 
 class UserCreateView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
+    @method_decorator(response_handler)
+    @method_decorator(transaction.atomic)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -36,22 +39,20 @@ class UserUpdateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
-    @transaction.atomic
+    @method_decorator(response_handler)
+    @method_decorator(transaction.atomic)
     def update(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(user, data=self.request.data, partial=True)
 
-        if serializer.is_valid(raise_exception=True):
-            user = serializer.save()
-            return Response(
-                {
-                    "message": "User updated successfully",
-                    "user": UserSerializer(user).data,
-                },
-                status=status.HTTP_200_OK,
-            )
+        serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = serializer.save()
+
+        return Response(
+            {"message": "User updated successfully", "user": UserSerializer(user).data},
+            status=status.HTTP_200_OK,
+        )
 
 
 class UserDeactivateView(generics.UpdateAPIView):
@@ -61,19 +62,19 @@ class UserDeactivateView(generics.UpdateAPIView):
     def get_object(self):
         return self.request.user
 
-    @transaction.atomic
+    @method_decorator(response_handler)
+    @method_decorator(transaction.atomic)
     def update(self, request, *args, **kwargs):
         user = self.get_object()
         serializer = self.get_serializer(user, data={"is_active": False}, partial=True)
 
-        if serializer.is_valid(raise_exception=True):
-            user = serializer.save()
-            return Response(
-                {
-                    "message": "User deactivated successfully",
-                    "user": UserSerializer(user).data,
-                },
-                status=status.HTTP_200_OK,
-            )
+        serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = serializer.save()
+
+        return Response(
+            {
+                "message": "User deactivated successfully",
+                "user": UserSerializer(user).data,
+            },
+        )
