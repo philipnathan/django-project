@@ -20,6 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     phone_number = serializers.CharField(validators=[validate_phone_number])
 
+    is_active = serializers.BooleanField(default=True, read_only=True)
+
     class Meta:
         model = get_user_model()
         fields = (
@@ -30,6 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
             "fullname",
             "phone_number",
             "role",
+            "is_active",
         )
 
     def validate(self, data):
@@ -100,3 +103,22 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class UserDeactivateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ("is_active",)
+
+    def validate_is_active(self, value):
+        if value:
+            raise serializers.ValidationError(
+                {"is_active": _("Please set to false to deactivate user")}
+            )
+
+        if self.instance.is_staff or self.instance.is_superuser:
+            raise serializers.ValidationError(
+                {"is_active": _("Cannot deactivate staff or superuser")}
+            )
+
+        return value
