@@ -10,3 +10,21 @@ services:
             - "8000:8000"
         env_file:
             - ./backend/.env
+        depends_on:
+            - db
+        environment:
+            - DB_HOST=db
+            - DB_PORT=5432
+
+    db:
+        image: postgres:17.0-alpine3.20
+        container_name: django_db
+        volumes:
+            - ./postgres_data:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        env_file:
+            - ./backend/.env
+
+volumes:
+    postgres_data:

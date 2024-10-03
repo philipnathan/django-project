@@ -116,6 +116,11 @@ class UserDeactivateSerializer(serializers.ModelSerializer):
                 {"is_active": _("Please set to false to deactivate user")}
             )
 
+        if self.instance.is_active is False:
+            raise serializers.ValidationError(
+                {"is_active": _("User is already deactivated")}
+            )
+
         if self.instance.is_staff or self.instance.is_superuser:
             raise serializers.ValidationError(
                 {"is_active": _("Cannot deactivate staff or superuser")}
