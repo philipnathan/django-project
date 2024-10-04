@@ -11,6 +11,7 @@ django-cors-headers = "==4.4.0"
 python-dotenv = "==1.0.1"
 djangorestframework-simplejwt = {extras = ["blacklist"], version = "*"}
 psycopg = "==3.2.3"
+pytest-django = "==4.9.0"
 
 [dev-packages]
 
