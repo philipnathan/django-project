@@ -2,7 +2,7 @@ FROM python:3.12-alpine3.20
 
 ENV PYTHONUNBUFFERED 1
 
-RUN apk add --no-cache gcc musl-dev postgresql-dev
+RUN apk add --no-cache gcc musl-dev postgresql-dev postgresql-client
 
 RUN adduser \
     --disabled-password \
