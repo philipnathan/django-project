@@ -58,7 +58,12 @@ class User(AbstractBaseUser, PermissionsMixin):
         ],
     )
     role = models.CharField(
-        _("role"), max_length=20, null=False, blank=False, choices=ROLE_CHOICES
+        _("role"),
+        max_length=20,
+        null=False,
+        blank=False,
+        choices=ROLE_CHOICES,
+        default="staff",
     )
 
     is_staff = models.BooleanField(default=False)
