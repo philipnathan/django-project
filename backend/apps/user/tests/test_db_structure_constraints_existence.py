@@ -1,7 +1,7 @@
 # validate field constraints
 
 import pytest
-from django.db import models
+from django.core.validators import MinLengthValidator
 
 from apps.user.models import User
 
@@ -43,3 +43,58 @@ def test_model_unique_constraints(model, field_name, is_unique):
 
 
 # validate max_length fields
+@pytest.mark.parametrize(
+    "model, field_name, expected_max_length",
+    [
+        (User, "email", 254),
+        (User, "fullname", 128),
+        (User, "phone_number", 14),
+        (User, "role", 20),
+    ],
+)
+def test_model_max_length_constraints(model, field_name, expected_max_length):
+
+    field = model._meta.get_field(field_name)
+
+    assert field.max_length == expected_max_length
+
+
+# validate min_length fields
+@pytest.mark.parametrize(
+    "model, field_name, expected_min_length",
+    [
+        (User, "phone_number", 10),
+    ],
+)
+def test_model_min_length_constraints(model, field_name, expected_min_length):
+
+    field = model._meta.get_field(field_name)
+
+    min_length_validator = None
+    for validator in field.validators:
+        if isinstance(validator, MinLengthValidator):
+            min_length_validator = validator
+
+    assert (
+        min_length_validator is not None
+    ), "Field '{}' has no MinLengthValidator".format(field_name)
+
+    assert (
+        min_length_validator.limit_value == expected_min_length
+    ), "Field '{}' has an invalid MinLengthValidator".format(field_name)
+
+
+# validate default values
+@pytest.mark.parametrize(
+    "model, field_name, expected_default",
+    [
+        (User, "role", "staff"),
+        (User, "is_staff", False),
+        (User, "is_active", True),
+    ],
+)
+def test_model_default_constraints(model, field_name, expected_default):
+
+    field = model._meta.get_field(field_name)
+
+    assert field.default == expected_default
