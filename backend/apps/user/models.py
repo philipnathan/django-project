@@ -1,3 +1,4 @@
+import re
 from django.db import models
 
 # Create your models here.
@@ -8,11 +9,8 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import (
-    MinLengthValidator,
-    MaxLengthValidator,
-    RegexValidator,
-)
+
+from .validators import validate_phone_number, validate_fullname, validate_password
 
 
 class UserManager(BaseUserManager):
@@ -21,9 +19,11 @@ class UserManager(BaseUserManager):
             raise TypeError(_("Email must be set"))
 
         email = self.normalize_email(email)
-        email = email.strip().lower()
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+
+        user.full_clean()
+
         user.save(using=self._db)
 
         return user
@@ -42,21 +42,22 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=128,
         null=False,
         blank=False,
+        validators=[validate_password],
     )
-    fullname = models.CharField(_("fullname"), max_length=128, null=False, blank=False)
+    fullname = models.CharField(
+        _("fullname"),
+        max_length=128,
+        null=False,
+        blank=False,
+        validators=[validate_fullname],
+    )
     phone_number = models.CharField(
         _("phone number"),
         max_length=14,
         null=False,
         blank=False,
         unique=True,
-        validators=[
-            MinLengthValidator(10),
-            MaxLengthValidator(14),
-            RegexValidator(
-                regex=r"^62\d{9,11}$", message="Phone number must start with 62"
-            ),
-        ],
+        validators=[validate_phone_number],
     )
     role = models.CharField(
         _("role"),
@@ -94,6 +95,22 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+    def clean(self):
+        super().clean()
+        # Normalize email
+        email = self.email.strip().lower()
+        self.email = email
+
+        # Normalize fullname
+        self.fullname = self.fullname.strip()
+        self.fullname = self.fullname.lower()
+        self.fullname = re.sub(r"\s+", " ", self.fullname)
+        self.fullname = self.fullname.title()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "user"
