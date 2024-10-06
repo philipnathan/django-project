@@ -17,5 +17,6 @@ class UserCreateView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(
-            {"email": user.email, "role": user.role}, status=status.HTTP_201_CREATED
+            {"email": user.email, "fullname": user.fullname, "role": user.role},
+            status=status.HTTP_201_CREATED,
         )
