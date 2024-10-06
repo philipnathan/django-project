@@ -19,7 +19,7 @@ def response_handler(func):
             )
         except Exception as e:
             return Response(
-                {"error": e.detail},
+                {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
