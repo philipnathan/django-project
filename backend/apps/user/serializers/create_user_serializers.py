@@ -1,4 +1,4 @@
-from ..validators import validate_password, validate_phone_number
+from ..validators import validate_password, validate_phone_number, validate_fullname
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -8,7 +8,6 @@ from rest_framework import serializers
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
-        validators=[validate_password],
         style={"input_type": "password"},
     )
 
@@ -17,8 +16,6 @@ class UserSerializer(serializers.ModelSerializer):
         style={"input_type": "password"},
         label="Confirm Password",
     )
-
-    phone_number = serializers.CharField(validators=[validate_phone_number])
 
     is_active = serializers.BooleanField(default=True, read_only=True)
 
@@ -40,7 +37,17 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"password": _("The two password fields didn't match.")}
             )
+
+        validate_password(data["password"])
         return data
+
+    def validate_phone_number(self, value):
+        validate_phone_number(value)
+        return value
+
+    def validate_fullname(self, value):
+        validate_fullname(value)
+        return value
 
     def create(self, validated_data):
         validated_data.pop("password2")
