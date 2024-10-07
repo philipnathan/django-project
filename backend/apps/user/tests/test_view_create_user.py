@@ -1,10 +1,17 @@
 import pytest
 from django.urls import reverse
+from rest_framework.test import APIClient
+
+
+# API Client Fixture
+@pytest.fixture
+def api_client():
+    return APIClient()
 
 
 # Test create user
 @pytest.mark.django_db
-def test_functional_create_user(client):
+def test_functional_create_user(api_client):
     # arrange: Prepare user data
     user_data = {
         "email": "test1@example.com",
@@ -16,9 +23,7 @@ def test_functional_create_user(client):
     }
 
     # act: Call endpoint
-    response = client.post(reverse("user_create"), user_data)
-    print(response.data)
-    print(response.status_code)
+    response = api_client.post(reverse("user_create"), user_data)
 
     # assert: Check response
     assert response.status_code == 201
@@ -41,7 +46,7 @@ def test_functional_create_user(client):
         ("    test@example.com", "test@example.com"),
     ],
 )
-def test_functional_create_user_email_normalization(client, email, expected_email):
+def test_functional_create_user_email_normalization(api_client, email, expected_email):
     """
     Test email normalization.
     Expected result:
@@ -60,7 +65,7 @@ def test_functional_create_user_email_normalization(client, email, expected_emai
     }
 
     # act
-    response = client.post(reverse("user_create"), user_data)
+    response = api_client.post(reverse("user_create"), user_data)
 
     # assert
     assert response.status_code == 201
@@ -87,7 +92,7 @@ def test_functional_create_user_email_normalization(client, email, expected_emai
     ],
 )
 def test_functional_create_user_password_validation(
-    client, password, expected_status_code
+    api_client, password, expected_status_code
 ):
     """
     Test password validation.
@@ -109,7 +114,7 @@ def test_functional_create_user_password_validation(
     }
 
     # act
-    response = client.post(reverse("user_create"), user_data)
+    response = api_client.post(reverse("user_create"), user_data)
 
     # assert
     assert response.status_code == expected_status_code
@@ -128,7 +133,7 @@ def test_functional_create_user_password_validation(
     ],
 )
 def test_functional_create_user_fullname_validation(
-    client, fullname, expected_status_code
+    api_client, fullname, expected_status_code
 ):
     """
     Test fullname validation.
@@ -150,7 +155,7 @@ def test_functional_create_user_fullname_validation(
     }
 
     # act
-    response = client.post(reverse("user_create"), user_data)
+    response = api_client.post(reverse("user_create"), user_data)
 
     # assert
     assert response.status_code == expected_status_code
@@ -175,7 +180,7 @@ def test_functional_create_user_fullname_validation(
     ],
 )
 def test_functional_create_user_fullname_normalization(
-    client, fullname, expected_fullname
+    api_client, fullname, expected_fullname
 ):
     """
     Test fullname normalization.
@@ -195,7 +200,7 @@ def test_functional_create_user_fullname_normalization(
     }
 
     # act
-    response = client.post(reverse("user_create"), user_data)
+    response = api_client.post(reverse("user_create"), user_data)
 
     # assert
     assert response.status_code == 201
@@ -203,15 +208,42 @@ def test_functional_create_user_fullname_normalization(
 
 
 # Test phone number validation
-# @pytest.mark.django_db
-# @pytest.mark.parametrize(
-#     "phone_number, expected_status_code",
-#     [
-#         # phone number must start with 62
-#         ("12345678901", 400),
-#         # phone number at least 11 digits long (including country code)
-#         ("62821567890", 400),
-#         # phone number at most 13 digits long (including country code)
-#         ("628215678901234", 400)
-#     ],
-# )
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "phone_number, expected_status_code",
+    [
+        # phone number must start with 62
+        ("12345678901", 400),
+        # phone number at least 11 digits long (including country code)
+        ("6282156789", 400),
+        # phone number at most 13 digits long (including country code)
+        ("628215678901234", 400),
+        # valid phone number
+        ("6282122223333", 201),
+    ],
+)
+def test_functional_create_user_phone_number_validation(
+    api_client, phone_number, expected_status_code
+):
+    """
+    Test phone number validation.
+    Expected result:
+    - Phone number must start with 62
+    - Phone number at least 11 digits long
+    - Phone number at most 13 digits long
+    """
+    # arrange
+    user_data = {
+        "email": "test@example.com",
+        "password": "Testpassword1234!",
+        "password2": "Testpassword1234!",
+        "fullname": "Test User",
+        "phone_number": phone_number,
+        "role": "staff",
+    }
+
+    # act
+    response = api_client.post(reverse("user_create"), user_data)
+
+    # assert
+    assert response.status_code == expected_status_code
