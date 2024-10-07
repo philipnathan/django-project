@@ -24,8 +24,8 @@ def validate_password(password):
 
 
 def validate_phone_number(phone_number):
-    if len(phone_number) < 10:
-        raise ValidationError(_("Phone number at least 10 digits long"))
+    if len(phone_number) < 11:
+        raise ValidationError(_("Phone number at least 11 digits long"))
     if len(phone_number) > 13:
         raise ValidationError(_("Phone number at most 13 digits long"))
     if not re.search(r"^62\d{9,11}$", phone_number):
