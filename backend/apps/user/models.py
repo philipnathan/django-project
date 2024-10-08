@@ -22,9 +22,17 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
 
-        user.full_clean()
-
         user.save(using=self._db)
+
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        if password is None:
+            raise TypeError(_("Password must be set"))
+
+        user = self.create_user(email, password, **extra_fields)
+        user.is_staff = True
+        user.is_superuser = True
 
         return user
 
